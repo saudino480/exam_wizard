@@ -4,10 +4,84 @@ import pandas as pd
 import glob
 import random
 import os
+import re
+
+def label_processor(filename):
+    '''
+    Accepts file name, extracts student's name based on the enforced naming format:
+    "Test_Student_exam.file"
+    filename: name of the file to extract the student's name.
+
+    Returns:
+    student_name: Student Name in the following format: "Student Name"
+    '''
+
+    temp = re.findall("[A-Za-z]+", filename)
+
+    try:
+        return temp[0] + " " + temp[1]
+    except:
+        return temp[0]
+
+def create_key_df(filepath, filetype, exam_name, output_filename, decrypt):
+    '''
+    Takes a filepath and creates a dataframe containing a conversion key between the
+    encoded values and the main value passed. It also saves a CSV version.
+    filepath: location of the files you'd like to make into a conversion matrix.
+
+    Returns:
+    encoded_df: a dataframe where the index is the anonymized ID, and the columns are
+    ['student_name', 'orig_file_name', 'encoded_file_name']
+    '''
+
+    if decrypt:
+        try:
+            return pd.read_csv(filepath+output_filename)
+        except:
+            raise ValueError("The conversion csv could not be found.")
+
+    exam_desc = "_"+exam_name+filetype
+
+    exams = [x for x in glob.glob(filepath+"*"+filetype) if ("solution" not in x.lower()) and \
+                                                   ("anonomizer" not in x.lower())]
+    student_id = random.sample(range(len(exams)), len(exams))
+    encrypted_file = [filepath+str(x)+desc for id in student_id]
+    student_names = [label_processor(x) for x in exams]
+
+    temp_dict = {'id' : student_id,
+                 'student_name': student_names,
+                 'orig_file_name': exams,
+                 'encoded_file_name': encryped_file}
+
+    temp_df = pd.DataFrame.from_dict(temp_dict)
+    temp_df.set_index('id')
+
+    temp_df.to_csv(output_filename)
+
+    return temp_df[['orig_file_name', 'encoded_file_name']]
+
+def renameinator(df, decrypt = False):
+    '''
+    Takes an encoded_df and renames all files within the directory.
+    A filepath should not be needed here, as it should be already in the titles from
+    the "create_key_df" function.
+    df: The dataframe containing the encoding information.
+
+    Returns:
+    nothing, just renames files
+    '''
+    if decrypt:
+        for old_name, new_name in zip(df.orig_file_name.values, df.encoded_file_name.values):
+            os.rename(new_name, old_name)
+    else:
+        for old_name, new_name in zip(df.orig_file_name.values, df.encoded_file_name.values):
+            os.rename(old_name, new_name)
+
 
 def file_checker(filepath):
     '''
-    Makes sure the filepath exists before continuing.
+    Makes sure the filepath exists before continuing. Fixes typical encoding error
+    where
 
     filepath: File path to check.
     '''
@@ -20,13 +94,45 @@ def file_checker(filepath):
     except:
         raise ValueError("File Path does not Exist")
 
+def encryptor(filepath = "./", filetype = ".ipynb", exam_name = "default",
+              output_filename = "conversion.csv", decrypt = False):
+    '''
+    This function accepts:
+    filepath: a path to where the exams are held, default is PWD
+    filetype: the type of file that should be searched for
+    exam_name: the name of the exam so the anonomized files aren't just 1,2,3... etc.
+    output_filename: the name that they conversion key csv will be saved as.
+    decrypt: whether to reverse the effect of the encryption on the files. When this is
+             set to True, the output_filename will instead be the file you read in to
+             decrypt the data.
+
+    and returns:
+    file_dict: A dictonary of the file name conversions.
+
+    The function will rename the files in that directory, so please be careful using this!
+    It will also "save" a CSV of what has been converted. If a CSV with the default name
+    has already been made it will throw an error.
+    '''
+
+    filepath = file_checker(filepath)
+
+    if ((output_filename in os.listdir(path=filepath)) and (not decrypt)):
+        raise ValueError("A file with that name already exists, and cannot be created. Please check that the files \
+                          are not already encoded.")
+
+    encoded_df = create_key_df(filepath, decrypt=decrypt)
+
+    renameinator(df=encoded_df, decrypt=decrypt)
+
+    return encoded_df
+
 def anonomizer(filepath = "./", filetype = ".ipynb", exam_name = "default", output_filename = "conversion.csv"):
     '''
     This function accepts:
     filepath: a path to where the exams are held, default is PWD
     filetype: the type of file that should be searched for
     exam_name: the name of the exam so the anonomized files aren't just 1,2,3... etc.
-    output_filename: the name that the conversion key csv will be saved as.
+    output_filename: the name that they conversion key csv will be saved as.
 
     and returns:
     file_dict: A dictonary of the file name conversions.
@@ -47,6 +153,7 @@ def anonomizer(filepath = "./", filetype = ".ipynb", exam_name = "default", outp
     exams = [x for x in glob.glob(filepath+"*"+filetype) if ("solution" not in x.lower()) and \
                                                    ("anonomizer" not in x.lower())]
     values = [filepath+str(x)+exam_desc for x in random.sample(range(len(exams)), len(exams))]
+    student_names = [label_processor(x) for x in glob.glob(filepath+"*"+filetype)]
 #    print(exams, values)
     file_dict = dict(zip(exams, values))
 

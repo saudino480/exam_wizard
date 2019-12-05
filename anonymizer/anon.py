@@ -6,7 +6,7 @@ switch_key = ""
 i = 0
 
 while switch_key == "":
-    print("What would you like to do today? Default is anonymize. [anonymize, decrypt]")
+    print("What would you like to do today? Default is anonymize. [anonymize, decrypt, exit]")
 
     temp = input()
 
