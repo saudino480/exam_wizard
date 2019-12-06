@@ -3,12 +3,42 @@
 	"type": "folder",
 	"path": ".",
 	"itms": [
+	    {
+	        "name": "TestExam",
+	        "id": "0000",
+	        "vers": "fall2019",
+	        "type": "file",
+	        "path": ".//gradebook//TestExam.csv",
+	        "frmt": [
+	            {
+	                "name": "Question 1",
+	                "text": "This is question number 1",
+	                "scle": "5",
+	                "note": "T",
+	                "optn": "F"
+	            },
+	            {
+	                "name": "Question 2",
+	                "text": "This is question number 2",
+	                "scle": "5",
+	                "note": "T",
+	                "optn": "F"
+	            },
+	            {
+	                "name": "Completed Survey",
+	                "text": "Did the student complete the survey?",
+	                "scle": "5",
+	                "note": "F",
+	                "optn": "T"
+	            }
+	            ]
+	    },
 		{
 			"name": "PythonMidterm",
 			"id": "0001",
 			"vers": "fall2019",
 			"type": "file",
-			"path": "./PythonMidterm",
+			"path": ".//gradebook//PythonMidterm.csv",
 			"frmt": [
 				{
 					"name": "Question 1",
@@ -47,7 +77,7 @@
 			"id": "0002",
 			"vers": "fall2019",
 			"type": "file",
-			"path": "./RMidterm",
+			"path": ".//gradebook//RMidterm.csv",
 			"frmt": [
 				{
 					"name": "Data Cleaning",
@@ -91,7 +121,7 @@
 			"id": "0003",
 			"vers": "fall2019",
 			"type": "file",
-			"path": "./MLMidterm",
+			"path": ".//gradebook//MLMidterm.csv",
 			"frmt": [
 				{
 					"name": "Section 1",
@@ -210,7 +240,7 @@
 			"id": "0004",
 			"vers": "fall2019",
 			"type": "file",
-			"path": "./FinalExam",
+			"path": ".//gradebook//FinalExam.csv",
 			"frmt": []
 		}
 
