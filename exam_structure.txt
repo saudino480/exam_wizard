@@ -1,14 +1,16 @@
 {
-	"name": "ExamStructure",
+	"name": "Exam Structure",
 	"type": "folder",
-	"path": ".",
+	"path": ".//gradebook//",
 	"itms": [
 	    {
-	        "name": "TestExam",
+	        "name": "Test Exam",
 	        "id": "0000",
 	        "vers": "fall2019",
 	        "type": "file",
 	        "path": ".//gradebook//TestExam.csv",
+	        "dtrb": "False",
+	        "when": "",
 	        "frmt": [
 	            {
 	                "name": "Question 1",
@@ -34,10 +36,12 @@
 	            ]
 	    },
 		{
-			"name": "PythonMidterm",
+			"name": "Python Midterm",
 			"id": "0001",
 			"vers": "fall2019",
 			"type": "file",
+			"dtrb": "True",
+			"when": "11:39:29.018491",
 			"path": ".//gradebook//PythonMidterm.csv",
 			"frmt": [
 				{
@@ -73,11 +77,13 @@
 			]
 		},
 		{
-			"name": "RMidterm",
+			"name": "R Midterm",
 			"id": "0002",
 			"vers": "fall2019",
 			"type": "file",
 			"path": ".//gradebook//RMidterm.csv",
+			"dtrb": "False",
+			"when": "",
 			"frmt": [
 				{
 					"name": "Data Cleaning",
@@ -117,11 +123,13 @@
 			]
 		},
 		{
-			"name": "MLMidterm",
+			"name": "Machine Learning Midterm",
 			"id": "0003",
 			"vers": "fall2019",
 			"type": "file",
 			"path": ".//gradebook//MLMidterm.csv",
+			"dtrb": "False",
+			"when": "",
 			"frmt": [
 				{
 					"name": "Section 1",
@@ -236,11 +244,13 @@
 			]
 		},
 		{
-			"name": "FinalExam",
+			"name": "Final Exam",
 			"id": "0004",
 			"vers": "fall2019",
 			"type": "file",
 			"path": ".//gradebook//FinalExam.csv",
+			"dtrb": "False",
+			"when": "",
 			"frmt": []
 		}
 

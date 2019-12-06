@@ -42,7 +42,7 @@ def input_grade(studentID, examID):
         g = pd.read_csv(exam['path'], converters={'SID': lambda x: str(x)}).set_index('SID')
         if studentID in g.index.values:
             print('Student is already graded')
-            print(g[g.index == studentID].T)
+            print(g[g.index == studentID].tail(1).T)
             overwrite = ""
             while overwrite != 'Y':
                 overwrite = input("Overwrite student grade? (Y/N)")
