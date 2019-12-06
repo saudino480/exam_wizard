@@ -1,0 +1,218 @@
+{
+	"name": "ExamStructure",
+	"type": "folder",
+	"path": ".",
+	"itms": [
+		{
+			"name": "PythonMidterm",
+			"id": "0001",
+			"vers": "fall2019",
+			"type": "file",
+			"path": "./PythonMidterm",
+			"frmt": [
+				{
+					"name": "Question 1",
+					"text": "",
+					"scle": "5",
+					"note": "T"
+				},
+				{
+					"name": "Question 2",
+					"text": "",
+					"scle": "5",
+					"note": "T"
+				},
+				{
+					"name": "Question 3",
+					"text": "",
+					"scle": "5",
+					"note": "T"
+				},
+				{
+					"name": "Question 4",
+					"text": "",
+					"scle": "5",
+					"note": "T"
+				},
+				{
+					"name": "Question 5",
+					"text": "",
+					"scle": "5",
+					"note": "T"
+				}
+			]
+		},
+		{
+			"name": "RMidterm",
+			"id": "0002",
+			"vers": "fall2019",
+			"type": "file",
+			"path": "./RMidterm",
+			"frmt": [
+				{
+					"name": "Data Cleaning",
+					"text": "",
+					"scle": "5",
+					"note": "T",
+					"optn": "F"
+				},
+				{
+					"name": "Question 1",
+					"text": "",
+					"scle": "5",
+					"note": "T",
+					"optn": "T"
+				},
+				{
+					"name": "Question 2",
+					"text": "",
+					"scle": "5",
+					"note": "T",
+					"optn": "T"
+				},
+				{
+					"name": "Question 3",
+					"text": "",
+					"scle": "5",
+					"note": "T",
+					"optn": "T"
+				},
+				{
+					"name": "Question 4",
+					"text": "",
+					"scle": "5",
+					"note": "T",
+					"optn": "T"
+				}
+			]
+		},
+		{
+			"name": "MLMidterm",
+			"id": "0003",
+			"vers": "fall2019",
+			"type": "file",
+			"path": "./MLMidterm",
+			"frmt": [
+				{
+					"name": "Section 1",
+					"text": "",
+					"note": "T",
+					"items": [
+						{
+							"name": "Question 1",
+							"text": "",
+							"scle": "5",
+							"note": "T",
+							"optn": "F"
+						},
+						{
+							"name": "Question 2",
+							"text": "",
+							"scle": "5",
+							"note": "T",
+							"optn": "F"
+						},
+						{
+							"name": "Question 3",
+							"text": "",
+							"scle": "5",
+							"note": "T",
+							"optn": "F"
+						},
+						{
+							"name": "Question 4",
+							"text": "",
+							"scle": "5",
+							"note": "T",
+							"optn": "F"
+						},
+						{
+							"name": "Question 5",
+							"text": "",
+							"scle": "5",
+							"note": "T",
+							"optn": "F"
+						}]
+				},
+				{
+					"name": "Section 2",
+					"text": "",
+					"note": "T",
+					"items": [
+						{
+							"name": "Question 1",
+							"text": "",
+							"scle": "5",
+							"note": "T",
+							"optn": "F"
+						},
+						{
+							"name": "Question 2",
+							"text": "",
+							"scle": "5",
+							"note": "T",
+							"optn": "F"
+						},
+						{
+							"name": "Question 3",
+							"text": "",
+							"scle": "5",
+							"note": "T",
+							"optn": "F"
+						},
+						{
+							"name": "Question 4",
+							"text": "",
+							"scle": "5",
+							"note": "T",
+							"optn": "F"
+						},
+						{
+							"name": "Question 5",
+							"text": "",
+							"scle": "5",
+							"note": "T",
+							"optn": "F"
+						},
+						{
+							"name": "Question 6",
+							"text": "",
+							"scle": "5",
+							"note": "T",
+							"optn": "F"
+						},
+						{
+							"name": "Question 7",
+							"text": "",
+							"scle": "5",
+							"note": "T",
+							"optn": "F"
+						},
+						{
+							"name": "Question 8",
+							"text": "",
+							"scle": "5",
+							"note": "T",
+							"optn": "F"
+						},
+						{
+							"name": "Question 9",
+							"text": "",
+							"scle": "5",
+							"note": "T",
+							"optn": "T"
+						}]
+				}
+			]
+		},
+		{
+			"name": "FinalExam",
+			"id": "0004",
+			"vers": "fall2019",
+			"type": "file",
+			"path": "./FinalExam",
+			"frmt": []
+		}
+
+	]
+}
