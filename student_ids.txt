@@ -1,28 +1,32 @@
 [
 	{
     	"name": "Sarah Lancaster",
-    	"id": "0001",
+    	"perm_id": "0001",
+    	"temp_id": "2013",
     	"rm": "1",
     	"email": "sarah.lancaster@gmail.com",
     	"slack": "itssarah"
 	},
 	{
 		"name": "Arthur Morgan",
-		"id": "0002",
-		"rm": "2"
+		"perm_id": "0002",
+		"temp_id": "1293",
+		"rm": "2",
 		"email": "arthur.morgan@gmail.com",
 		"slack": "AMorgan"
 	},
 	{
 		"name": "Lenny Truville",
-		"id": "0003",
+		"perm_id": "0003",
+		"temp_id": "1238",
 		"rm": "1",
 		"email": "ltruville002@gmail.com",
 		"slack": ""
 	},
 	{
 		"name": "Jackie Trudeau",
-		"id": "0004",
+		"perm_id": "0004",
+		"temp_id": "2039",
 		"rm": "3",
 		"email": "jackie.trudeau@gmail.com",
 		"slack": "JackieTru"
