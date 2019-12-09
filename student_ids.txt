@@ -1,18 +1,30 @@
 [
 	{
     	"name": "Sarah Lancaster",
-    	"id": "0001"
+    	"id": "0001",
+    	"rm": "1",
+    	"email": "sarah.lancaster@gmail.com",
+    	"slack": "itssarah"
 	},
 	{
 		"name": "Arthur Morgan",
-		"id": "0002"
+		"id": "0002",
+		"rm": "2"
+		"email": "arthur.morgan@gmail.com",
+		"slack": "AMorgan"
 	},
 	{
 		"name": "Lenny Truville",
-		"id": "0003"
+		"id": "0003",
+		"rm": "1",
+		"email": "ltruville002@gmail.com",
+		"slack": ""
 	},
 	{
 		"name": "Jackie Trudeau",
-		"id": "0004"
+		"id": "0004",
+		"rm": "3",
+		"email": "jackie.trudeau@gmail.com",
+		"slack": "JackieTru"
 	}
 ]

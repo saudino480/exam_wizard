@@ -1,48 +1,75 @@
 import pandas as pd
 import numpy as np
-import csv, json
+import csv, json, sys, os
 from tabulate import tabulate
+from datetime import datetime
 
 
 def input_grade(studentID, examID):
 
-    #Pull Exam Structure
+    # Pull Exam Structure
     try:
         with open("./exam_structure.txt", 'r') as e:
             exams = json.load(e)
         exam = exams['itms'][next((index for (index, d) in enumerate(exams['itms']) if d["id"] == examID), None)]
     except TypeError:
-        return 'Exam ID not found.'
+        print('Exam ID not found.')
+        return None
     except FileNotFoundError:
-        return 'exam_structure.txt not found in project directory.\nAsk the System Administrator.'
+        print('exam_structure.txt not found in project directory.\nAsk the System Administrator.')
+        return None
+    except:
+        print("Unexpected Error:", sys.exc_info()[0])
+        return None
 
-    #Check Student Exists
+    # Check Student Exists
     try:
         with open("./student_ids.txt") as s:
             students = json.load(s)
             student = students[next((index for (index, d) in enumerate(students) if d["id"] == studentID), None)]
     except TypeError:
-        return 'Student ID not found.'
+        print('Student ID not found.')
+        return None
     except FileNotFoundError:
-        return 'student_ids.txt not found in project directory.\nAsk the System Administrator.'
-    print('Found Student and Exam!\n')
+        print('student_ids.txt not found in project directory.\nAsk the System Administrator.')
+        return None
+    except:
+        print("Unexpected Error:", sys.exc_info()[0])
+        raise
 
-    #Generate Questionaire
-    qtns = ['id'] + [val for pair in zip(
-            [e['name'] + '_Mark' for e in exam['frmt']],
-            [q['name'] + '_Note' if q['note'] == 'T' else 'kill' for q in exam['frmt']
-        ]) for val in pair]
-    entry = {'id': studentID}
-    for q in qtns[1:]:
-        entry[q] = input(q)
-    entry = pd.DataFrame(data=entry, index=[0])
-    print(entry.T)
-    #Write entry to gradebook file
+    # Check if student has been graded and user wants to overwrite.
+    try:
+        g = pd.read_csv(exam['path'], converters={'SID': lambda x: str(x)}).set_index('SID')
+        if studentID in g.index.values:
+            print('Student is already graded')
+            print(g[g.index == studentID].tail(1).T)
+            overwrite = ""
+            while overwrite != 'Y':
+                overwrite = input("Overwrite student grade? (Y/N)")
+                if overwrite == 'N':
+                    return None
+    except FileNotFoundError:
+        pass
 
+    # Generate Grading Input Format
+    entry = {}
+    for elem in exam['frmt']:
+        entry[elem['name']] = input(elem['name'] + "_Mark: ")
+        while entry[elem['name']] == "" and elem["optn"] == "F":
+            print(elem['name'] + ' is not Optional.')
+            entry[elem['name']] = input(elem['name'] + "_Mark: ")
+        if elem['note'] == 'T':
+            entry[elem['name']+'_Note'] = input(elem['name']+'_Note:')
+    entry['SID'] = studentID
+    entry['GRADER'] = input('Enter your name: ')
+    entry['timestamp'] = datetime.now().time()
+    entry = pd.DataFrame(data=entry, index=[0]).set_index('SID')
 
+    if not os.path.isfile(exam['path']):
+        entry.to_csv(exam['path'], header='column_names')
+    else:
+        entry.to_csv(exam['path'], mode='a', header=False)
 
-
-    # 1
     return None
 
 
@@ -51,4 +78,4 @@ if __name__ == "__main__":
     print("Please input the following: ")
     studentID = input("Student ID: ")
     examID = input("Exam ID: ")
-
+    input_grade(studentID, examID)
