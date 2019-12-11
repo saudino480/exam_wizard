@@ -1,10 +1,13 @@
 # NYC DSA Exam Anonimizer helper file
 # Created 12-04-2019 by Sam Audino
 import pandas as pd
+import zipfile as zp
+import numpy as np
 import glob
 import random
 import os
 import re
+import json
 
 def label_processor(filename):
     '''
@@ -24,11 +27,38 @@ def label_processor(filename):
     except:
         return temp[0]
 
-def create_key_df(filepath, filetype, exam_name, output_filename, decrypt):
+
+def load_json_to_df(file, json_type = "student"):
+    '''
+    Loads a json file and handles the processing to dataframe. Returns a dataframe.
+    file: filepath to the JSON file wishing to be processed.
+
+    Returns:
+    linking_df: a Dataframe constructed from the JSON file.
+    '''
+    if json_type.lower() == "student":
+        # attempting to preserve JSON format order.
+        linking_df = pd.DataFrame(columns = ["name", "perm_id", "temp_id", "rm", "email", "slack"])
+    elif json_type.lower() == 'exam':
+        # will be written later
+        pass
+    else:
+        linking_df = pd.DataFrame()
+
+    with open(file) as f:
+        students = json.load(f)
+        for student in students:
+            linking_df = linking_df.append(student, ignore_index = True)
+
+    return linking_df
+
+
+def create_key_df(filepath, student_filepath, filetype, exam_name, output_filename, decrypt):
     '''
     Takes a filepath and creates a dataframe containing a conversion key between the
     encoded values and the main value passed. It also saves a CSV version.
     filepath: location of the files you'd like to make into a conversion matrix.
+    student_filepath: where the student_id JSON is saved.
     filetype: filetype of the exam.
     exam_name: the exam name to be encoded.
     output_filename: name of the conversion CSV to be saved as.
@@ -39,31 +69,64 @@ def create_key_df(filepath, filetype, exam_name, output_filename, decrypt):
     ['orig_file_name', 'encoded_file_name']
     '''
 
+    ''' disabling this feature for now, will rework it to use new file formats.
     if decrypt:
         try:
             return pd.read_csv(filepath+output_filename, index_col = 'id')
         except:
             raise ValueError("The conversion csv could not be found.")
+    '''
 
     exam_desc = "_"+exam_name+filetype
 
     exams = [x for x in glob.glob(filepath+"*"+filetype) if ("solution" not in x.lower()) and \
-                                                   ("anonomizer" not in x.lower())]
-    student_id = random.sample(range(len(exams)), len(exams))
-    encrypted_file = [filepath+str(ID)+exam_desc for ID in student_id]
+                                               ("anonomizer" not in x.lower())]
     student_names = [label_processor(x) for x in exams]
 
-    temp_dict = {'id' : student_id,
-                 'student_name': student_names,
-                 'orig_file_name': exams,
-                 'encoded_file_name': encrypted_file}
+    file_df = pd.DataFrame({"orig_file": exams, "name": student_names})
 
-    temp_df = pd.DataFrame.from_dict(temp_dict)
-    temp_df.set_index('id', inplace=True)
+    linking_df = load_json_to_df(student_filepath)
 
-    temp_df.to_csv(filepath+output_filename)
+    left_overs = [student for student in file_df['name'].values if student not in linking_df['name'].values]
+    unsubmitted = [student for student in linking_df['name'].values if student not in file_df['name'].values]
 
-    return temp_df[['orig_file_name', 'encoded_file_name']]
+    # generate temp_ids
+    masked_df = linking_df[linking_df['name'].isin(student_names)]
+    masked_df['temp_id'] = random.sample(range(1000,9999), masked_df.shape[0])
+
+    # make sure that users that did not submit an exam have a unique temp_id code.
+    unsubmitted = linking_df[~linking_df['name'].isin(student_names)]
+    unsubmitted['temp_id'] = '0000'
+
+    # clean up a little bit, save the result
+    linking_df = pd.concat([masked_df, unsubmitted], axis = 0)
+    linking_df.sort_values('perm_id', inplace = True)
+    linking_df.to_json("test.json", orient='records', lines=True)
+
+    # don't need everything moving on, just the name
+    reduced_df = linking_df[['name', 'temp_id']]
+
+    # only want to encrypt exams that have names we know!! (a better way to do this would be
+    # if we could possible get the email tagged onto the file when we download this; so the user
+    # account would be the thing we link on, not if they spelled their name correctly (reduce
+    # user error)).
+    file_df = pd.merge(reduced_df, file_df, how = 'inner', on='name')
+    file_df['encrypt_file'] = [filepath+str(ID)+exam_desc for ID in file_df['temp_id'].values]
+    file_df.set_index('temp_id', inplace=True)
+    file_df.to_csv(filepath+output_filename)
+
+    if left_overs != []:
+        print("The following students are not in the database:")
+        for student in left_overs:
+            print("\n", student)
+
+    if unsubmitted != []:
+        print("\n The following students have not submitted exams, and have been assigned a temporary ID of 0000:")
+        for student in unsubmitted:
+            print("\n", student)
+
+    return file_df[['orig_file', 'encrypt_file']]
+
 
 def renameinator(df, decrypt = False):
     '''
@@ -77,10 +140,10 @@ def renameinator(df, decrypt = False):
     nothing, just renames files
     '''
     if decrypt:
-        for old_name, new_name in zip(df.orig_file_name.values, df.encoded_file_name.values):
+        for old_name, new_name in zip(df.orig_file.values, df.encrypt_file.values):
             os.rename(new_name, old_name)
     else:
-        for old_name, new_name in zip(df.orig_file_name.values, df.encoded_file_name.values):
+        for old_name, new_name in zip(df.orig_file.values, df.encrypt_file.values):
             os.rename(old_name, new_name)
 
 
@@ -100,11 +163,12 @@ def file_checker(filepath):
     except:
         raise ValueError("File Path does not Exist")
 
-def encryptor(filepath = "./", filetype = ".ipynb", exam_name = "default",
-              output_filename = "conversion.csv", decrypt = False):
+def encryptor(filepath = "./", student_file = "./student_ids.txt", filetype = ".ipynb",
+              exam_name = "default", output_filename = "conversion.csv", decrypt = False):
     '''
     This function accepts:
     filepath: a path to where the exams are held, default is PWD
+    student_filepath: where the student_id JSON is saved, default is student_ids.txt in PWD.
     filetype: the type of file that should be searched for
     exam_name: the name of the exam so the anonomized files aren't just 1,2,3... etc.
     output_filename: the name that they conversion key csv will be saved as.
@@ -127,8 +191,8 @@ def encryptor(filepath = "./", filetype = ".ipynb", exam_name = "default",
         raise ValueError("A file with that name already exists, and cannot be created. Please check that the files \
                           are not already encoded.")
 
-    encoded_df = create_key_df(filepath=filepath, filetype=filetype, exam_name=exam_name,
-                               output_filename = output_filename, decrypt=decrypt)
+    encoded_df = create_key_df(filepath=filepath, student_file = student_file, filetype=filetype,
+                               exam_name=exam_name, output_filename = output_filename, decrypt=decrypt)
 
     renameinator(df=encoded_df, decrypt=decrypt)
 
@@ -143,3 +207,57 @@ def encryptor(filepath = "./", filetype = ".ipynb", exam_name = "default",
                 print("\n", m)
 
     return encoded_df
+
+def distributor(ta_json, file_df):
+    '''
+    Take a JSON and a dataframe of encrypted exam files and distributes them amongst the TAs.
+    Eventually will include a method that automatically emails them to each TA. Until then,
+    we output a DF of the TA's emails, and the files that they should be grading.
+    ta_json: Filepath of the TA_json.
+    file_df: a DF of encoded exams.
+
+    returns
+    TA_df: a reduced TA_df containing only the email and exams to grade.
+    '''
+
+    TA_df = load_json_to_df('TA_data.txt', json_type='ta')
+
+    exams_per_ta = 1 if file_df.shape[0] // TA_df.shape[0] == 0 else file_df.shape[0] // TA_df.shape[0]
+
+    exams_to_send = file_df['encrypt_file'].values
+
+    # have to shuffle bc knowing the order of the students would allow you to guess whose exam you are grading.
+    np.random.shuffle(exams_to_send)
+
+
+    if exams_per_ta == 1:
+        if len(exams_to_send) < TA_df.shape[0]:
+            for _ in range(TA_df.shape[0] - len(exams_to_send)):
+                exams_to_send = np.append(exams_to_send, np.array(['None']))
+
+            # ensure that one TA doesn't always get no exams when the number of exams is less than
+            # the number of TAs.
+            np.random.shuffle(exams_to_send)
+            TA_df['exams_to_grade'] = exams_to_send
+        else:
+            TA_df['exams_to_grade'] = exams_to_send
+
+    else:
+        TA_df['exams_to_grade'] = np.array_split(exams_to_send, TA_df.shape[0])
+
+        for TA, exams in zip(TA_df['name'].values, TA_df['exams_to_grade'].values):
+        if exams == "None":
+            print("TA ", TA, "does not have any exams to grade.")
+            continue
+        print("Creating zip file for TA", TA+"'s", "exam(s).")
+        with zp.ZipFile(TA+'.zip', 'w') as zipper:
+            if type(exams) == str:
+                print("Writing exam: ", exams)
+                 zipper.write(exams)
+            else:
+                for exam in exams:
+                    print("Writing exam: ", exam)
+                     zipper.write(exam)
+
+
+    return TA_df[['email', 'exams_to_grade']]

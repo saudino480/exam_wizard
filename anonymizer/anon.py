@@ -6,7 +6,7 @@ switch_key = ""
 i = 0
 
 while switch_key == "":
-    print("What would you like to do today? Default is anonymize. [encrypt, decrypt, exit]")
+    print("What would you like to do today? Default is encrypt. [encrypt, decrypt, exit]")
 
     temp = input()
 
@@ -32,6 +32,12 @@ print("\nPlease enter in the filepath. Hitting return without entering anything 
 temp = input()
 
 user_filepath = "./" if temp == "" else file_checker(temp)
+
+print("\nPlease enter in the filepath for the student_id.txt JSON. Hitting return without entering anything will attempt to look for the JSON in the current directory.")
+
+temp = input()
+
+user_stu_filepath = "./student_ids.txt" if temp == "" else temp
 
 print("\nPlease enter in the filetype of the exam. Hitting return without entering anything will default to '.ipynb'.")
 
@@ -68,7 +74,7 @@ print("Anonomyzing with settings:","\nFilepath: ", user_filepath,
       "\nFiletype: ", user_filetype, "\nExam Name: ", user_examname,
       "\nOutput CSV: ", user_outputfile)
 
-encryptor(filepath = user_filepath, filetype = user_filetype,
+encryptor(filepath = user_filepath, student_filepath = user_stu_filepath, filetype = user_filetype,
            exam_name = user_examname, output_filename = user_outputfile, decrypt = switch_key)
 
 print("\n\n\nAll done! The key to convert the files back is: ", user_outputfile)
