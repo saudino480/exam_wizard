@@ -20,7 +20,7 @@ def label_processor(filename):
     '''
     temp = filename.split("/")[-1]
 
-    temp = re.findall("[A-Za-z]+", temp)
+    temp = re.findall("[A-Z][a-z]+", temp)
 
     try:
         return temp[0] + " " + temp[1]
@@ -52,6 +52,22 @@ def load_json_to_df(file, json_type = "student"):
 
     return linking_df
 
+def json_format_preserver(df, json_filename):
+    '''
+    A shortcut way to make sure that the JSON file has its format preserved.
+    Takes:
+    df: a dataframe that wants to be converted to JSON format.
+    json_filename: the filename of the JSON file. If it is not in the PWD, please
+                   include the absolute filepath.
+
+    Returns:
+    None
+    '''
+
+    formatter = json.loads(df.to_json(orient='records'))
+
+    with open(json_filename, 'w') as f:
+        json.dump(formatter, f, indent=4)
 
 def create_key_df(filepath, student_filepath, filetype, exam_name, output_filename, decrypt):
     '''
@@ -69,13 +85,14 @@ def create_key_df(filepath, student_filepath, filetype, exam_name, output_filena
     ['orig_file_name', 'encoded_file_name']
     '''
 
-    ''' disabling this feature for now, will rework it to use new file formats.
     if decrypt:
         try:
-            return pd.read_csv(filepath+output_filename, index_col = 'id')
+            return pd.read_csv(filepath+output_filename)
         except:
-            raise ValueError("The conversion csv could not be found.")
-    '''
+            try:
+                return pd.read_csv(output_filename)
+            except:
+                raise ValueError("The conversion csv could not be found.")
 
     exam_desc = "_"+exam_name+filetype
 
@@ -95,13 +112,13 @@ def create_key_df(filepath, student_filepath, filetype, exam_name, output_filena
     masked_df['temp_id'] = random.sample(range(1000,9999), masked_df.shape[0])
 
     # make sure that users that did not submit an exam have a unique temp_id code.
-    unsubmitted = linking_df[~linking_df['name'].isin(student_names)]
-    unsubmitted['temp_id'] = '0000'
+    unsubmitted_df = linking_df[~linking_df['name'].isin(student_names)]
+    unsubmitted_df['temp_id'] = '0000'
 
     # clean up a little bit, save the result
-    linking_df = pd.concat([masked_df, unsubmitted], axis = 0)
+    linking_df = pd.concat([masked_df, unsubmitted_df], axis = 0)
     linking_df.sort_values('perm_id', inplace = True)
-    linking_df.to_json("test.json", orient='records', lines=True)
+    json_format_preserver(df = linking_df, json_filename = student_filepath)
 
     # don't need everything moving on, just the name
     reduced_df = linking_df[['name', 'temp_id']]
@@ -140,6 +157,7 @@ def renameinator(df, decrypt = False):
     nothing, just renames files
     '''
     if decrypt:
+        print(df)
         for old_name, new_name in zip(df.orig_file.values, df.encrypt_file.values):
             os.rename(new_name, old_name)
     else:
@@ -151,8 +169,11 @@ def file_checker(filepath):
     '''
     Makes sure the filepath exists before continuing. Fixes typical encoding error
     where the final slash is forgotten.
-
+    Takes:
     filepath: File path to check.
+
+    Returns:
+    filepath: A corrected filepath
     '''
     if filepath[-1] != "/":
         filepath += "/"
@@ -184,22 +205,38 @@ def encryptor(filepath = "./", student_file = "./student_ids.txt", filetype = ".
     has already been made it will throw an error. This choice was made in order to prevent
     people from encrypting their data twice, by accident.
     '''
-
+    override_decrypt = False
     filepath = file_checker(filepath)
 
+    # make sure the user doesn't accidentially overwrite your encryption file.
     if ((output_filename in os.listdir(path=filepath)) and (not decrypt)):
-        raise ValueError("A file with that name already exists, and cannot be created. Please check that the files \
-                          are not already encoded.")
+        temp = input("Do you want to use the old conversion schema saved at: "+output_filename+"? [y/[n]]\n")
+        if 'y' in temp.lower():
+            override_decrypt = True
+            pass
+        else:
+            temp = input("Are you sure you would like to overwrite: "+output_filename+"? [y/[n]")
+            if 'y' in temp.lower():
+                pass
+            else:
+                raise ValueError("A file with that name already exists, and cannot be created. Please check that the files \
+                                 are not already encoded.")
 
-    encoded_df = create_key_df(filepath=filepath, student_file = student_file, filetype=filetype,
-                               exam_name=exam_name, output_filename = output_filename, decrypt=decrypt)
+    if override_decrypt:
+        encoded_df = create_key_df(filepath=filepath, student_filepath = student_file, filetype=filetype,
+                                   exam_name=exam_name, output_filename = output_filename,
+                                   decrypt=override_decrypt)
+    else:
+        encoded_df = create_key_df(filepath=filepath, student_filepath = student_file, filetype=filetype,
+                                   exam_name=exam_name, output_filename = output_filename,
+                                   decrypt=decrypt)
 
     renameinator(df=encoded_df, decrypt=decrypt)
 
     if decrypt:
         file_check = glob.glob(filepath+"*"+filetype)
 
-        missing = [file for file in file_check if file not in encoded_df.orig_file_name.values]
+        missing = [file for file in file_check if file not in encoded_df.orig_file.values]
 
         if missing != []:
             print("The following files have not been processed:")
@@ -229,35 +266,24 @@ def distributor(ta_json, file_df):
     # have to shuffle bc knowing the order of the students would allow you to guess whose exam you are grading.
     np.random.shuffle(exams_to_send)
 
+    exams_to_send = np.array_split(exams_to_send, TA_df.shape[0])
+    np.random.shuffle(exams_to_send)
+    exams_to_send = [list(sub_array) for sub_array in exams_to_send]
+    TA_df['exams_to_grade'] = exams_to_send
 
-    if exams_per_ta == 1:
-        if len(exams_to_send) < TA_df.shape[0]:
-            for _ in range(TA_df.shape[0] - len(exams_to_send)):
-                exams_to_send = np.append(exams_to_send, np.array(['None']))
-
-            # ensure that one TA doesn't always get no exams when the number of exams is less than
-            # the number of TAs.
-            np.random.shuffle(exams_to_send)
-            TA_df['exams_to_grade'] = exams_to_send
-        else:
-            TA_df['exams_to_grade'] = exams_to_send
-
-    else:
-        TA_df['exams_to_grade'] = np.array_split(exams_to_send, TA_df.shape[0])
-
-        for TA, exams in zip(TA_df['name'].values, TA_df['exams_to_grade'].values):
-        if exams == "None":
+    for TA, exams in zip(TA_df['name'].values, TA_df['exams_to_grade'].values):
+        if exams == []:
             print("TA ", TA, "does not have any exams to grade.")
             continue
         print("Creating zip file for TA", TA+"'s", "exam(s).")
         with zp.ZipFile(TA+'.zip', 'w') as zipper:
             if type(exams) == str:
                 print("Writing exam: ", exams)
-                 zipper.write(exams)
+                zipper.write(exams)
             else:
                 for exam in exams:
                     print("Writing exam: ", exam)
-                     zipper.write(exam)
+                    zipper.write(exam)
 
 
     return TA_df[['email', 'exams_to_grade']]
