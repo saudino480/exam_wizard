@@ -1,8 +1,8 @@
-from Gmail import Gmail
+from google_apps import GMail
 
-myGmail = Gmail("charles.cohen@nycdatascience.com")
+myGmail = GMail("charles.cohen@nycdatascience.com")
 
-msg = myGmail.create_attached_message("nycdsa.student@gmail.com", "Zip File Attached",
-                                      "This message contains a zip file\n\nDo not respond.",
-                                      ".", "Charlie.zip")
+msg = myGmail.create_attached_message("nycdsa.student@gmail.com", "Text File Test",
+                                      "This message contains a text file attachment.\n\nDo not respond.",
+                                      ".", "TODO_2.txt")
 myGmail.send_message(msg)
